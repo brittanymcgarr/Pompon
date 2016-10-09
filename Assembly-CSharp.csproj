@@ -88,7 +88,11 @@
      <Compile Include="Assets\GoogleVR\Scripts\UI\IGvrGazePointer.cs" />
      <Compile Include="Assets\GoogleVR\Scripts\UI\IGvrGazeResponder.cs" />
      <Compile Include="Assets\Scripts\Clicker.cs" />
+     <Compile Include="Assets\Scripts\CrabHarvest.cs" />
+     <Compile Include="Assets\Scripts\DebugTree.cs" />
      <Compile Include="Assets\Scripts\GameControl.cs" />
+     <Compile Include="Assets\Scripts\HarvestAcorn.cs" />
+     <Compile Include="Assets\Scripts\HarvestMushroom.cs" />
      <Compile Include="Assets\Scripts\HeadLookWalk.cs" />
      <Compile Include="Assets\Scripts\People_Lily.cs" />
      <Compile Include="Assets\Scripts\RandomBark.cs" />
