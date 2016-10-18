@@ -90,13 +90,16 @@
      <Compile Include="Assets\Scripts\Clicker.cs" />
      <Compile Include="Assets\Scripts\CrabHarvest.cs" />
      <Compile Include="Assets\Scripts\DebugTree.cs" />
+     <Compile Include="Assets\Scripts\ExitButton.cs" />
      <Compile Include="Assets\Scripts\GameControl.cs" />
      <Compile Include="Assets\Scripts\HarvestAcorn.cs" />
      <Compile Include="Assets\Scripts\HarvestMushroom.cs" />
      <Compile Include="Assets\Scripts\HeadLookWalk.cs" />
+     <Compile Include="Assets\Scripts\LeftButton.cs" />
      <Compile Include="Assets\Scripts\People_Lily.cs" />
      <Compile Include="Assets\Scripts\RandomBark.cs" />
      <Compile Include="Assets\Scripts\RandomPosition.cs" />
+     <Compile Include="Assets\Scripts\RightButton.cs" />
      <Compile Include="Assets\Scripts\plant_plot_00.cs" />
      <Compile Include="Assets\Scripts\tool_wateringcan.cs" />
      <None Include="Assets\GoogleVR\Distortion\GvrDistortion.cginc" />

@@ -62,7 +62,7 @@ public class HarvestAcorn : MonoBehaviour, IGvrGazeResponder {
 				
 				GameObject acorn = Instantiate(Resources.Load("Models/item_acorn")) as GameObject;
 				acorn.SetActive(true);
-				acorn.transform.parent = this.transform;
+				acorn.transform.SetParent(this.transform, false);
 				acorn.transform.localPosition = new Vector3(0.0f, 1.0f, 0.0f);
 				acorn.transform.localScale = new Vector3(-1.0f, -1.0f, 1.0f);
 				Destroy(acorn, 2.0f);

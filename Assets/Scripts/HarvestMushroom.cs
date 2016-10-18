@@ -62,7 +62,7 @@ public class HarvestMushroom : MonoBehaviour, IGvrGazeResponder {
 				
 				GameObject mushroom = Instantiate(Resources.Load("Models/item_mushroom")) as GameObject;
 				mushroom.SetActive(true);
-				mushroom.transform.parent = this.transform;
+				mushroom.transform.SetParent(this.transform, false);
 				mushroom.transform.localPosition = new Vector3(0.0f, 1.0f, 0.0f);
 				Destroy(mushroom, 2.0f);
 			}

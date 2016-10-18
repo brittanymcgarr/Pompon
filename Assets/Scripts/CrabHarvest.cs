@@ -62,7 +62,7 @@ public class CrabHarvest : MonoBehaviour, IGvrGazeResponder {
 			
 			GameObject scallop = Instantiate(Resources.Load("Models/item_scallop")) as GameObject;
 			scallop.SetActive(true);
-			scallop.transform.parent = this.transform;
+			scallop.transform.SetParent(this.transform, false);
 			scallop.transform.localPosition = new Vector3(0.0f, 1.0f, 0.0f);
 			Destroy(scallop, 2.0f);
 		}

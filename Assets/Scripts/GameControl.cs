@@ -19,11 +19,18 @@ public class GameControl : MonoBehaviour {
     // Make this a singleton class by storing a reference
 	public static GameControl control;
 
+	// Variables
+	public static int CROPS = 11;
+	public int seedPos = 0;
+	public int seedPrice = 100;
+	public int seasonalPos = 0;
+	public int seasonalPrice = 200;
+	
 	// Persistent data to store
 	public int gold;
 	public string[] plots = new string[8];
-	public int[] seeds = new int[1];
-	public int[] crops = new int[1];
+	public int[] seeds = new int[CROPS];
+	public int[] crops = new int[CROPS];
 	public int[] items = new int[5];
 	public DateTime crabGift;
 	public int crabNumber = 0;
@@ -33,6 +40,8 @@ public class GameControl : MonoBehaviour {
 	public int mushroomsNumber = 0;
 	public DateTime flowerDrop;
 	public int flowersNumber = 0;
+	public bool tutorial = true;
+	public string todayMonth;
 	
 	// Awake comes before Start
 	void Awake () {
@@ -41,6 +50,12 @@ public class GameControl : MonoBehaviour {
 		if(control == null) {
 			DontDestroyOnLoad(gameObject);
 			control = this;
+			
+			DateTime now = DateTime.Now;
+			todayMonth = now.ToString("MMM");
+			
+			// Initialize the seeds
+			SetupSeeds();
 		} else {
 		// Otherwise, destroy the calling object. It has already been made.
 			Destroy(gameObject);
@@ -79,6 +94,7 @@ public class GameControl : MonoBehaviour {
 		data.mushroomsNumber = mushroomsNumber;
 		data.flowerDrop = flowerDrop;
 		data.flowersNumber = flowersNumber;
+		data.tutorial = tutorial;
 		
 		// Serialize it
 		bf.Serialize(file, data);
@@ -113,6 +129,7 @@ public class GameControl : MonoBehaviour {
 			mushroomsNumber = data.mushroomsNumber;
 			flowerDrop = data.flowerDrop;
 			flowersNumber = data.flowersNumber;
+			tutorial = data.tutorial;
 		} else {
 			// Save the new game
 			Save();
@@ -124,19 +141,19 @@ public class GameControl : MonoBehaviour {
 		DateTime timestamp = System.DateTime.Now;
 		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
 		plots = new string[8];
-		seeds = new int[1];
-		crops = new int[1];
+		seeds = new int[CROPS];
+		crops = new int[CROPS];
 		items = new int[5];
 		
 		for(int index = 0; index < 8; index++) {
 			plots[index] = "plant_plot_0" + (char)(index + 48) + "," + 'D' + ",dirt," + datenow;
 		}
 		
-		for(int index = 0; index < 1; index++) {
+		for(int index = 0; index < CROPS; index++) {
 			seeds[index] = 0;
 		}
 		
-		for(int index = 0; index < 1; index++) {
+		for(int index = 0; index < CROPS; index++) {
 			crops[index] = 0;
 		}
 		
@@ -147,6 +164,7 @@ public class GameControl : MonoBehaviour {
 		// Give the player some turnip seeds and 100 gold
 		gold = 100;
 		seeds[0] = 3;
+		tutorial = true;
 		
 		// Reset their gifting times
 		crabGift = System.DateTime.Now;
@@ -241,11 +259,269 @@ public class GameControl : MonoBehaviour {
 		
 		return false;
 	}
+	
+	// Setup Monthly and seasonal seeds
+	public void SetupSeeds() {
+		if(todayMonth == "Dec" || todayMonth == "Jan" || todayMonth == "Feb") {
+			// Winter Seasonals
+			// Regular Crop: Turnip
+			seedPos = 0;
+			seedPrice = 100;
+			
+			// Check for monthlies
+			if(todayMonth == "Dec") {
+				// December Sugarplums 1000g seed 10000g sell
+				seasonalPos = 5;
+				seasonalPrice = 1000;
+			} else if(todayMonth == "Jan") {
+				// January Leeks buy 300g seed 450g sell
+				seasonalPos = 6;
+				seasonalPrice = 300;
+			} else {
+				// February Pommegranates 400g seed 1500g sell
+				seasonalPos = 7;
+				seasonalPrice = 400;
+			}
+		} else if(todayMonth == "Mar" || todayMonth == "Apr" || todayMonth == "May") {
+			// Spring Seasonals
+			// Regular Crop: Broccoli
+			seedPos = 3;
+			seedPrice = 100;
+			
+			// Check for monthlies
+			if(todayMonth == "Mar") {
+				// March Lettuce
+				seasonalPos = 8;
+				seasonalPrice = 100;
+			} else if(todayMonth == "Apr") {
+				// April Peas
+				seasonalPos = 9;
+				seasonalPrice = 140;
+			} else {
+				// May Cantaloupe
+				seasonalPos = 10;
+				seasonalPrice = 300;
+			}
+		} else if(todayMonth == "Jun" || todayMonth == "Jul" || todayMonth == "Aug") {
+			// Summer Seasonals
+			// Regular Crop: Tomato
+			seedPos = 4;
+			seedPrice = 100;
+			
+			// Check for monthlies
+			if(todayMonth == "Jun") {
+				// STUB : Pumpkin
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			} else if(todayMonth == "Jul") {
+				// October Pumpkins
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			} else {
+				// STUB : Pumpkin
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			}
+		} else {
+			// Fall Seasonals
+			// Regular Crop: Carrot
+			seedPos = 1;
+			seedPrice = 120;
+			
+			// Check for monthlies
+			if(todayMonth == "Sep") {
+				// STUB : Pumpkin
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			} else if(todayMonth == "Oct") {
+				// October Pumpkins 350g seed 500g sell
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			} else {
+				// STUB : Pumpkin
+				seasonalPos = 2;
+				seasonalPrice = 350;
+			}
+		}	
+	}
+	
+	// Buy Seeds
+	public bool BuySeeds(int number) {
+		if(gold >= seedPrice * number) {
+			gold = gold - seedPrice * number;
+			seeds[seedPos] = seeds[seedPos] + number;
+			
+			Save();
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// Buy Seasonal Seeds
+	public bool BuySeasonal(int number) {
+		if(gold >= seasonalPrice * number) {
+			gold = gold - seasonalPrice * number;
+			seeds[seasonalPos] = seeds[seasonalPos] + number;
+			
+			Save();
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// Buy whole inventory
+	public void BuyInventory() {
+		// Buy all crops
+		BuyCrops(0);
+		
+		// Buy all items
+		BuyItems(0);
+		
+		// Save the game 
+		Save();
+	}
+	
+	// Buy Crops
+	public void BuyCrops(int remaining) {
+		if(remaining < 0) {
+			remaining = 0;
+		}
+		
+		// Sell turnips
+		if(crops[0] > 0) {
+			if(crops[0] > remaining) {
+				gold = gold + (crops[0] - remaining) * 120;
+				crops[0] = remaining;
+			}
+		}
+		
+		// Sell carrots
+		if(crops[1] > 0) {
+			if(crops[1] > remaining) {
+				gold = gold + (crops[1] - remaining) * 150;
+				crops[1] = remaining;
+			}
+		}
+		
+		// Sell pumpkins
+		if(crops[2] > 0) {
+			if(crops[2] > remaining) {
+				gold = gold + (crops[2] - remaining) * 500;
+				crops[2] = remaining;
+			}
+		}
+		
+		// Sell broccoli
+		if(crops[3] > 0) {
+			if(crops[3] > remaining) {
+				gold = gold + (crops[3] - remaining) * 150;
+				crops[3] = remaining;
+			}
+		}
+		
+		// Sell tomato
+		if(crops[4] > 0) {
+			if(crops[4] > remaining) {
+				gold = gold + (crops[4] - remaining) * 200;
+				crops[4] = remaining;
+			}
+		}
+		
+		// Sell sugarplum
+		if(crops[5] > 0) {
+			if(crops[5] > remaining) {
+				gold = gold + (crops[5] - remaining) * 10000;
+				crops[5] = remaining;
+			}
+		}
+		
+		// Sell leek
+		if(crops[6] > 0) {
+			if(crops[6] > remaining) {
+				gold = gold + (crops[6] - remaining) * 450;
+				crops[6] = remaining;
+			}
+		}
+		
+		// Sell Pommegranate
+		if(crops[7] > 0) {
+			if(crops[7] > remaining) {
+				gold = gold + (crops[7] - remaining) * 1500;
+				crops[7] = remaining;
+			}
+		}
+		
+		// Sell Lettuce
+		if(crops[8] > 0) {
+			if(crops[8] > remaining) {
+				gold = gold + (crops[8] - remaining) * 200;
+				crops[8] = remaining;
+			}
+		}
+		
+		// Sell Peas
+		if(crops[9] > 0) {
+			if(crops[9] > remaining) {
+				gold = gold + (crops[9] - remaining) * 300;
+				crops[9] = remaining;
+			}
+		}
+		
+		// Sell Cantaloupe
+		if(crops[10] > 0) {
+			if(crops[10] > remaining) {
+				gold = gold + (crops[10] - remaining) * 500;
+				crops[10] = remaining;
+			}
+		}
+		
+		Save();
+	}
+	
+	// Buy Items
+	public void BuyItems(int remaining) {
+		if(remaining < 0) {
+			remaining = 0;
+		}
+		
+		// Sell acorns
+		if(items[0] > 0) {
+			if(items[0] > remaining) {
+				gold = gold + (items[0] - remaining) * 10;
+				items[0] = remaining;
+			}
+		}
+		
+		// Sell mushrooms
+		if(items[1] > 0) {
+			if(items[1] > remaining) {
+				gold = gold + (items[1] - remaining) * 10;
+				items[1] = remaining;
+			}
+		}
+		
+		// Sell scallops
+		if(items[2] > 0) {
+			if(items[2] > remaining) {
+				gold = gold + (items[2] - remaining) * 10;
+				items[2] = remaining;
+			}
+		}
+
+		Save();
+	}
 }
 
 // Private class of player data
 [Serializable]
 class PlayerData {
+	// Size variables
+	public static int CROPS = 11;
+
 	public int gold;
 	
 	// Store strings of the plant plot states in format
@@ -256,11 +532,13 @@ class PlayerData {
 	// Store inventory values
 	
 	// Seeds
-	// Order of seed values: 0 turnips, ... 
+	// Order of seed values: 0 turnips, 1 carrots, 2 pumpkins, 3 broccoli, 4 tomato, 5 sugarplum, 6 leek, 7 pommegranate,
+	// 						 8 lettuce, 9 pea, 10 cantaloupe... 
 	public int[] seeds;
 	
 	// Crops
-	// Order of crop values: 0 turnips, ...
+	// Order of crop values: 0 turnips, 1 carrots, 2 pumpkins, 3 broccoli, 4 tomato, 5 sugarplum, 6 leek, 7 pommegranate,
+	// 						 8 lettuce, 9 pea, 10 cantaloupe...
 	public int[] crops;
 	
 	// Items
@@ -277,12 +555,15 @@ class PlayerData {
 	public DateTime flowerDrop;
 	public int flowersNumber = 0;
 	
+	// UI variables
+	public bool tutorial = true;
+	
 	// Class Methods
 	// Public constructor
 	public PlayerData() {
 		plots = new string[8];
-		seeds = new int[1];
-		crops = new int[1];
+		seeds = new int[CROPS];
+		crops = new int[CROPS];
 		items = new int[5];
 		
 		DateTime timestamp = System.DateTime.Now;
@@ -292,11 +573,11 @@ class PlayerData {
 			plots[index] = "plant_plot_0" + (char)(index + 48) + "," + 'D' + ",dirt," + datenow;
 		}
 		
-		for(int index = 0; index < 1; index++) {
+		for(int index = 0; index < CROPS; index++) {
 			seeds[index] = 0;
 		}
 		
-		for(int index = 0; index < 1; index++) {
+		for(int index = 0; index < CROPS; index++) {
 			crops[index] = 0;
 		}
 		
