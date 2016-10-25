@@ -2,7 +2,7 @@
 using System.Collections;
 
 public class HeadLookWalk : MonoBehaviour {
-	public float velocity = 0.7f;
+	public float velocity = 1.0f;
 	public bool isWalking = false;
 	
 	private AudioSource footsteps;

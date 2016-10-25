@@ -12,6 +12,7 @@
 using UnityEngine;
 using System.Collections;
 using System;
+using System.Globalization;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 
@@ -20,7 +21,7 @@ public class GameControl : MonoBehaviour {
 	public static GameControl control;
 
 	// Variables
-	public static int CROPS = 11;
+	public static int CROPS = 16;
 	public int seedPos = 0;
 	public int seedPrice = 100;
 	public int seasonalPos = 0;
@@ -32,6 +33,11 @@ public class GameControl : MonoBehaviour {
 	public int[] seeds = new int[CROPS];
 	public int[] crops = new int[CROPS];
 	public int[] items = new int[5];
+	public int[] storedSeeds = new int[CROPS];
+	public int[] storedCrops = new int[CROPS];
+	public char freezerStage = 'b';
+	public char hopperStage = 'b';
+	public string seedHopper = "";
 	public DateTime crabGift;
 	public int crabNumber = 0;
 	public DateTime acornsDrop;
@@ -56,8 +62,8 @@ public class GameControl : MonoBehaviour {
 			
 			// Initialize the seeds
 			SetupSeeds();
-		} else {
-		// Otherwise, destroy the calling object. It has already been made.
+		} else if(control != this) {
+			// Otherwise, destroy the calling object. It has already been made.
 			Destroy(gameObject);
 		}
 	}
@@ -86,6 +92,11 @@ public class GameControl : MonoBehaviour {
 		data.seeds = seeds;
 		data.crops = crops;
 		data.items = items;
+		data.storedSeeds = storedSeeds;
+		data.storedCrops = storedCrops;
+		data.freezerStage = freezerStage;
+		data.hopperStage = hopperStage;
+		data.seedHopper = seedHopper;
 		data.crabGift = crabGift;
 		data.crabNumber = crabNumber;
 		data.acornsDrop = acornsDrop;
@@ -117,10 +128,58 @@ public class GameControl : MonoBehaviour {
 			
 			// Set that data
 			gold = data.gold;
-			plots = data.plots;
-			seeds = data.seeds;
-			crops = data.crops;
+			
+			// Set the plots
+			if(data.plots.Length < plots.Length) {
+				for(int index = 0; index < data.plots.Length; index++) {
+					plots[index] = data.plots[index];
+				}
+			} else {
+				plots = data.plots;
+			}
+			
+			// Set the seeds
+			if(data.seeds.Length < CROPS) {
+				for(int index = 0; index < data.seeds.Length; index++) {
+					seeds[index] = data.seeds[index];
+				}
+			} else {
+				seeds = data.seeds;
+			}
+				
+			// Set the crops
+			if(data.crops.Length < CROPS) {
+				for(int index = 0; index < data.crops.Length; index++) {
+					crops[index] = data.crops[index];
+				}
+			} else {
+				crops = data.crops;
+			}
+			
+			// Set the items
 			items = data.items;
+			
+			// Set the stored seeds
+			if(data.storedSeeds.Length < CROPS) {
+				for(int index = 0; index < data.storedSeeds.Length; index++) {
+					storedSeeds[index] = data.storedSeeds[index];
+				}
+			} else {
+				storedSeeds = data.storedSeeds;
+			}	
+			
+			// Set the stored crops
+			if(data.storedCrops.Length < CROPS) {
+				for(int index = 0; index < data.storedCrops.Length; index++) {
+					storedCrops[index] = data.storedCrops[index];
+				}
+			} else {
+				storedCrops = data.storedCrops;
+			}
+				
+			freezerStage = data.freezerStage;
+			hopperStage = data.hopperStage;
+			seedHopper = data.seedHopper;
 			crabGift = data.crabGift;
 			crabNumber = data.crabNumber;
 			acornsDrop = data.acornsDrop;
@@ -144,6 +203,8 @@ public class GameControl : MonoBehaviour {
 		seeds = new int[CROPS];
 		crops = new int[CROPS];
 		items = new int[5];
+		storedSeeds = new int[CROPS];
+		storedCrops = new int[CROPS];
 		
 		for(int index = 0; index < 8; index++) {
 			plots[index] = "plant_plot_0" + (char)(index + 48) + "," + 'D' + ",dirt," + datenow;
@@ -151,10 +212,9 @@ public class GameControl : MonoBehaviour {
 		
 		for(int index = 0; index < CROPS; index++) {
 			seeds[index] = 0;
-		}
-		
-		for(int index = 0; index < CROPS; index++) {
 			crops[index] = 0;
+			storedSeeds[index] = 0;
+			storedCrops[index] = 0;
 		}
 		
 		for(int index = 0; index < 5; index++) {
@@ -165,6 +225,11 @@ public class GameControl : MonoBehaviour {
 		gold = 100;
 		seeds[0] = 3;
 		tutorial = true;
+		freezerStage = 'b';
+		hopperStage = 'b';
+		
+		// Reset the seed hopper information
+		seedHopper = "b,-1," + datenow;
 		
 		// Reset their gifting times
 		crabGift = System.DateTime.Now;
@@ -310,17 +375,17 @@ public class GameControl : MonoBehaviour {
 			
 			// Check for monthlies
 			if(todayMonth == "Jun") {
-				// STUB : Pumpkin
-				seasonalPos = 2;
-				seasonalPrice = 350;
+				// June Grapes
+				seasonalPos = 11;
+				seasonalPrice = 500;
 			} else if(todayMonth == "Jul") {
-				// October Pumpkins
-				seasonalPos = 2;
-				seasonalPrice = 350;
+				// July Watermelon
+				seasonalPos = 12;
+				seasonalPrice = 600;
 			} else {
-				// STUB : Pumpkin
-				seasonalPos = 2;
-				seasonalPrice = 350;
+				// August Strawberries
+				seasonalPos = 13;
+				seasonalPrice = 300;
 			}
 		} else {
 			// Fall Seasonals
@@ -330,17 +395,17 @@ public class GameControl : MonoBehaviour {
 			
 			// Check for monthlies
 			if(todayMonth == "Sep") {
-				// STUB : Pumpkin
-				seasonalPos = 2;
-				seasonalPrice = 350;
+				// September Sweet Potato
+				seasonalPos = 14;
+				seasonalPrice = 120;
 			} else if(todayMonth == "Oct") {
 				// October Pumpkins 350g seed 500g sell
 				seasonalPos = 2;
 				seasonalPrice = 350;
 			} else {
-				// STUB : Pumpkin
-				seasonalPos = 2;
-				seasonalPrice = 350;
+				// November Cranberry
+				seasonalPos = 15;
+				seasonalPrice = 200;
 			}
 		}	
 	}
@@ -392,91 +457,100 @@ public class GameControl : MonoBehaviour {
 		}
 		
 		// Sell turnips
-		if(crops[0] > 0) {
-			if(crops[0] > remaining) {
-				gold = gold + (crops[0] - remaining) * 120;
-				crops[0] = remaining;
-			}
+		if(crops[0] > remaining) {
+			gold = gold + ((crops[0] - remaining) * 120);
+			crops[0] = remaining;
 		}
 		
 		// Sell carrots
-		if(crops[1] > 0) {
-			if(crops[1] > remaining) {
-				gold = gold + (crops[1] - remaining) * 150;
-				crops[1] = remaining;
-			}
+		if(crops[1] > remaining) {
+			gold = gold + ((crops[1] - remaining) * 150);
+			crops[1] = remaining;
 		}
+
 		
 		// Sell pumpkins
-		if(crops[2] > 0) {
-			if(crops[2] > remaining) {
-				gold = gold + (crops[2] - remaining) * 500;
-				crops[2] = remaining;
-			}
+		if(crops[2] > remaining) {
+			gold = gold + ((crops[2] - remaining) * 500);
+			crops[2] = remaining;
 		}
 		
 		// Sell broccoli
-		if(crops[3] > 0) {
-			if(crops[3] > remaining) {
-				gold = gold + (crops[3] - remaining) * 150;
-				crops[3] = remaining;
-			}
+		if(crops[3] > remaining) {
+			gold = gold + ((crops[3] - remaining) * 150);
+			crops[3] = remaining;
 		}
 		
 		// Sell tomato
-		if(crops[4] > 0) {
-			if(crops[4] > remaining) {
-				gold = gold + (crops[4] - remaining) * 200;
-				crops[4] = remaining;
-			}
+		if(crops[4] > remaining) {
+			gold = gold + ((crops[4] - remaining) * 200);
+			crops[4] = remaining;
 		}
 		
 		// Sell sugarplum
-		if(crops[5] > 0) {
-			if(crops[5] > remaining) {
-				gold = gold + (crops[5] - remaining) * 10000;
-				crops[5] = remaining;
-			}
+		if(crops[5] > remaining) {
+			gold = gold + ((crops[5] - remaining) * 10000);
+			crops[5] = remaining;
 		}
 		
 		// Sell leek
-		if(crops[6] > 0) {
-			if(crops[6] > remaining) {
-				gold = gold + (crops[6] - remaining) * 450;
-				crops[6] = remaining;
-			}
+		if(crops[6] > remaining) {
+			gold = gold + ((crops[6] - remaining) * 450);
+			crops[6] = remaining;
 		}
 		
 		// Sell Pommegranate
-		if(crops[7] > 0) {
-			if(crops[7] > remaining) {
-				gold = gold + (crops[7] - remaining) * 1500;
-				crops[7] = remaining;
-			}
+		if(crops[7] > remaining) {
+			gold = gold + ((crops[7] - remaining) * 1500);
+			crops[7] = remaining;
 		}
 		
 		// Sell Lettuce
-		if(crops[8] > 0) {
-			if(crops[8] > remaining) {
-				gold = gold + (crops[8] - remaining) * 200;
-				crops[8] = remaining;
-			}
+		if(crops[8] > remaining) {
+			gold = gold + ((crops[8] - remaining) * 200);
+			crops[8] = remaining;
 		}
 		
 		// Sell Peas
-		if(crops[9] > 0) {
-			if(crops[9] > remaining) {
-				gold = gold + (crops[9] - remaining) * 300;
-				crops[9] = remaining;
-			}
+		if(crops[9] > remaining) {
+			gold = gold + ((crops[9] - remaining) * 300);
+			crops[9] = remaining;
 		}
 		
 		// Sell Cantaloupe
-		if(crops[10] > 0) {
-			if(crops[10] > remaining) {
-				gold = gold + (crops[10] - remaining) * 500;
-				crops[10] = remaining;
-			}
+		if(crops[10] > remaining) {
+			gold = gold + ((crops[10] - remaining) * 500);
+			crops[10] = remaining;
+		}
+		
+		// Sell Grapes
+		if(crops[11] > remaining) {
+			gold = gold + ((crops[11] - remaining) * 1500);
+			crops[11] = remaining;
+		}
+		
+		// Sell Watermelon
+		if(crops[12] > remaining) {
+			gold = gold + ((crops[12] - remaining) * 1000);
+			crops[12] = remaining;
+		}
+		
+		// Sell Strawberries
+		if(crops[13] > remaining) {
+			gold = gold + ((crops[13] - remaining) * 450);
+			crops[13] = remaining;
+		}
+		
+		// Sell Sweet Potato
+		if(crops[14] > remaining) {
+			gold = gold + ((crops[14] - remaining) * 150);
+			crops[14] = remaining;
+		}
+		
+		// Sell Cranberries
+		if(crops[15] > remaining) {
+			gold = gold + ((crops[15] - remaining) * 300);
+			crops[15] = remaining;
 		}
 		
 		Save();
@@ -514,13 +588,204 @@ public class GameControl : MonoBehaviour {
 
 		Save();
 	}
+	
+	// Store Seeds
+	public void StoreSeeds(int position) {
+		// Store all the seeds if the position is a negative number
+		if(position < 0) {
+			for(int index = 0; index < CROPS; index++) {
+				storedSeeds[index] += seeds[index];
+				seeds[index] = 0;
+			}
+		} else {
+			if(seeds[position] > 0) {
+				storedSeeds[position] += seeds[position];
+				seeds[position] = 0;
+			}
+		}
+		
+		Save();
+	}
+	
+	// Withdraw Seeds
+	public void WithdrawSeeds(int position) {
+		// Withdraw all Seeds if the position is negative
+		if(position < 0) {
+			for(int index = 0; index < CROPS; index++) {
+				seeds[index] += storedSeeds[index];
+				storedSeeds[index] = 0;
+			}
+		} else {
+			seeds[position] += storedSeeds[position];
+			storedSeeds[position] = 0;
+		}
+		
+		Save();
+	}
+	
+	// Store Crops
+	public void StoreCrops(int position) {
+		int remaining = 0;
+		
+		// Check stage of freezer
+		if(freezerStage == 'r') {
+			// If the freezer was repaired, can store as many as the player has up to 100
+			if(position < 0) {
+				// A negative means store all produce
+				for(int index = 0; index < CROPS; index++) {
+					if(crops[index] >= 100) {
+						remaining = 100 - storedCrops[index];
+						storedCrops[index] += remaining;
+						crops[index] -= remaining;
+					} else {
+						if(storedCrops[index] + crops[index] > 100) {
+							remaining = storedCrops[index] - 100;
+							crops[index] += remaining;
+							storedCrops[index] -= remaining;
+						} else {
+							storedCrops[index] += crops[index];
+							crops[index] = 0;
+						}
+					}
+				}
+			} else {
+				if(crops[position] >= 100) {
+					remaining = 100 - storedCrops[position];
+					storedCrops[position] += remaining;
+					crops[position] -= remaining;
+				} else {
+					if(storedCrops[position] + crops[position] > 100) {
+						remaining = storedCrops[position] - 100;
+						crops[position] += remaining;
+						storedCrops[position] -= remaining;
+					} else {
+						storedCrops[position] += crops[position];
+						crops[position] = 0;
+					}
+				}
+			}
+		} else {
+			// Unrepaired fridge can only store 1 of any type of item.
+			if(position < 0) {
+				// Store one of each
+				for(int index = 0; index < CROPS; index++) {
+					if(storedCrops[index] == 0 && crops[index] > 0) {
+						storedCrops[index] += 1;
+						crops[index] -= 1;
+					}
+				}
+			} else {
+				if(storedCrops[position] == 0 && crops[position] > 0) {
+					storedCrops[position] += 1;
+					crops[position] -= 1;
+				}
+			}
+		}
+		
+		Save();
+	}
+	
+	// Withdraw Crops
+	public void WithdrawCrops(int position) {
+		if(position < 0) {
+			for(int index = 0; index < CROPS; index++) {
+				crops[index] += storedCrops[index];
+				storedCrops[index] = 0;
+			}
+		} else {
+			crops[position] += storedCrops[position];
+			storedCrops[position] = 0;
+		}
+		
+		Save();
+	}
+	
+	// Store a crop for the seed hopper
+	public bool StoreHopper(int position) {
+		if(position >= 0) {
+			string saveData = seedHopper;
+			string[] dataTokens = saveData.Split(',');
+			int plantType = Int32.Parse(dataTokens[1]);
+			
+			if(plantType == -1) {
+				if(crops[position] > 0) {
+					crops[position] -= 1;
+					
+					DateTime timestamp = System.DateTime.Now;
+					string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+					seedHopper = dataTokens[0] + "," + position.ToString() + "," + datenow;
+					
+					Save();
+					
+					return true;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+	
+	// Withdraw a ready seed packet from the seed hopper
+	public bool WithdrawHopper() {
+		string saveData = seedHopper;
+		string[] dataTokens = saveData.Split(',');
+		int plantType = Int32.Parse(dataTokens[1]);
+		string datetimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+		DateTime depositTime = System.DateTime.ParseExact(dataTokens[2], datetimeFormat, CultureInfo.InvariantCulture);
+		
+		if(plantType >= 0 && depositTime.AddHours(6) < System.DateTime.Now) {
+			DateTime timestamp = System.DateTime.Now;
+			string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+			seedHopper = dataTokens[0] + "," + (-1).ToString() + "," + datenow;
+			
+			if((dataTokens[0])[0] == 'u') {
+				seeds[plantType] += 3;
+			} else {
+				seeds[plantType] += 2;
+			}
+			
+			Save();
+			
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	// Upgrade the seed hopper
+	public void UpgradeHopper() {
+		DateTime timestamp = System.DateTime.Now;
+		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+		
+		if(seedHopper != "" && seedHopper != null) {
+			string[] dataTokens = seedHopper.Split(',');
+			
+			if((dataTokens[0])[0] != 'u') {
+				if((dataTokens[0])[0] == 'b') {
+					seedHopper = "r,-1," + datenow;
+				} else {
+					seedHopper = "u,-1," + datenow;
+				}
+				
+				Save();
+			}
+		} else {			
+			seedHopper = "r,-1," + datenow;
+			
+			Save();
+		}
+	}
 }
 
 // Private class of player data
 [Serializable]
 class PlayerData {
 	// Size variables
-	public static int CROPS = 11;
+	public static int CROPS = 16;
 
 	public int gold;
 	
@@ -533,17 +798,32 @@ class PlayerData {
 	
 	// Seeds
 	// Order of seed values: 0 turnips, 1 carrots, 2 pumpkins, 3 broccoli, 4 tomato, 5 sugarplum, 6 leek, 7 pommegranate,
-	// 						 8 lettuce, 9 pea, 10 cantaloupe... 
+	// 						 8 lettuce, 9 pea, 10 cantaloupe, 11 grapes, 12 watermelon, 13 strawberry, 14 sweetpotato,
+	//						 15 cranberry... 
 	public int[] seeds;
 	
 	// Crops
 	// Order of crop values: 0 turnips, 1 carrots, 2 pumpkins, 3 broccoli, 4 tomato, 5 sugarplum, 6 leek, 7 pommegranate,
-	// 						 8 lettuce, 9 pea, 10 cantaloupe...
+	// 						 8 lettuce, 9 pea, 10 cantaloupe, 11 grapes, 12 watermelon, 13 strawberry, 14 sweetpotato,
+	//						 15 cranberry...
 	public int[] crops;
 	
 	// Items
 	// Order of item values: 0 acorns, 1 mushrooms, 2 scallops, 3 tulips, 4 pompons, ...
 	public int[] items;
+	
+	// Stored Seeds
+	public int[] storedSeeds;
+	
+	// Stored Crops
+	public int[] storedCrops;
+	
+	// Appliance stages
+	public char freezerStage = 'b';
+	public char hopperStage = 'b';
+	
+	// Seed Hopper data
+	public string seedHopper = "";
 	
 	// Gift spawns
 	public DateTime crabGift;
@@ -565,6 +845,8 @@ class PlayerData {
 		seeds = new int[CROPS];
 		crops = new int[CROPS];
 		items = new int[5];
+		storedSeeds = new int[CROPS];
+		storedCrops = new int[CROPS];
 		
 		DateTime timestamp = System.DateTime.Now;
 		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
@@ -575,15 +857,19 @@ class PlayerData {
 		
 		for(int index = 0; index < CROPS; index++) {
 			seeds[index] = 0;
-		}
-		
-		for(int index = 0; index < CROPS; index++) {
 			crops[index] = 0;
+			storedSeeds[index] = 0;
+			storedCrops[index] = 0;
 		}
 		
 		for(int index = 0; index < 5; index++) {
 			items[index] = 0;
 		}
+		
+		freezerStage = 'b';
+		hopperStage = 'b';
+		
+		seedHopper = "b," + (-1).ToString() + "," + datenow;
 		
 		crabGift = System.DateTime.Now;
 		acornsDrop = System.DateTime.Now;

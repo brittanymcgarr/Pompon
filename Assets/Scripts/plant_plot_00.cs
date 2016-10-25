@@ -167,6 +167,16 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 							seedType = "pea";
 						} else if(index == 10) {
 							seedType = "cantaloupe";
+						} else if(index == 11) {
+							seedType = "grape";
+						} else if(index == 12) {
+							seedType = "watermelon";
+						} else if(index == 13) {
+							seedType = "strawberry";
+						} else if(index == 14) {
+							seedType = "sweetpotato";
+						} else if(index == 15) {
+							seedType = "cranberry";
 						} else {
 							seedType = "";
 						}
@@ -337,46 +347,82 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 			stage1_seconds = 10;
 			stage2_seconds = 20;
 			stage3_seconds = 30;
+			seedPos = 0;
 		} else if(plantType == "carrot") {
 			stage1_seconds = 60;
 			stage2_seconds = 120;
 			stage3_seconds = 300;
+			seedPos = 1;
 		} else if(plantType == "pumpkin") {
 			stage1_seconds = 10 * 60;
 			stage2_seconds = 30 * 60;
 			stage3_seconds = 60 * 60;
+			seedPos = 2;
 		} else if(plantType == "broccoli") {
 			stage1_seconds = 60;
 			stage2_seconds = 180;
 			stage3_seconds = 420;
+			seedPos = 3;
 		} else if(plantType == "tomato") {
 			stage1_seconds = 5 * 60;
 			stage2_seconds = 10 * 60;
 			stage3_seconds = 15 * 60;
+			seedPos = 4;
 		} else if(plantType == "sugarplum") {
 			stage1_seconds = 3 * 60 * 60;
 			stage2_seconds = 12 * 60 * 60;
 			stage3_seconds = 24 * 60 * 60;
+			seedPos = 5;
 		} else if(plantType == "leek") {
 			stage1_seconds = 15 * 60;
 			stage2_seconds = 30 * 60;
 			stage3_seconds = 45 * 60;
+			seedPos = 6;
 		} else if(plantType == "pommegranate") {
 			stage1_seconds = 60 * 60;
 			stage2_seconds = 2 * 60 * 60;
 			stage3_seconds = 3 * 60 * 60;
+			seedPos = 7;
 		} else if(plantType == "lettuce") {
 			stage1_seconds = 1 * 60;
 			stage2_seconds = 3 * 60;
 			stage3_seconds = 5 * 60;
+			seedPos = 8;
 		} else if(plantType == "pea") {
 			stage1_seconds = 1 * 60;
 			stage2_seconds = 3 * 60;
 			stage3_seconds = 5 * 60;
+			seedPos = 9;
 		} else if(plantType == "cantaloupe") {
 			stage1_seconds = 30 * 60;
 			stage2_seconds = 60 * 60;
 			stage3_seconds = 90 * 60;
+			seedPos = 10;
+		} else if(plantType == "grape") {
+			stage1_seconds = 60 * 60;
+			stage2_seconds = 1 * 60 * 60;
+			stage3_seconds = 2 * 60 * 60;
+			seedPos = 11;
+		} else if(plantType == "watermelon") {
+			stage1_seconds = 30 * 60;
+			stage2_seconds = 60 * 60;
+			stage3_seconds = 90 * 60;
+			seedPos = 12;
+		} else if(plantType == "strawberry") {
+			stage1_seconds = 5 * 60;
+			stage2_seconds = 15 * 60;
+			stage3_seconds = 45 * 60;
+			seedPos = 13;
+		} else if(plantType == "sweetpotato") {
+			stage1_seconds = 60;
+			stage2_seconds = 3 * 60;
+			stage3_seconds = 5 * 60;
+			seedPos = 14;
+		} else if(plantType == "cranberry") {
+			stage1_seconds = 5 * 60;
+			stage2_seconds = 10 * 60;
+			stage3_seconds = 15 * 60;
+			seedPos = 15;
 		} else {
 			stage1_seconds = 0;
 			stage2_seconds = 0;

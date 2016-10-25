@@ -174,11 +174,13 @@ public class People_Lily : MonoBehaviour, IGvrGazeResponder {
 						GameControl.control.seeds[4] += 1;
 						
 						tutorialCount += 1;
+						GameControl.control.tutorial = false;
+						GameControl.control.Save();
 					}
 				} else {
 					text.text = tutorialText[tutorialCount];
 					tutorialCount += 1;
-					if(tutorialCount >= 15) {
+					if(tutorialCount > 14) {
 						tutorialON = false;
 						menuActive = true;
 						timeToRead = 60.0f;
@@ -286,20 +288,20 @@ public class People_Lily : MonoBehaviour, IGvrGazeResponder {
 			
 			// Check for monthlies
 			if(todayMonth == "Jun") {
-				// STUB : Pumpkin
-				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
-				seasonalSeeds = "Pumpkin";
-				seasonalPrice = "350";
+				// June Grapes
+				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_grapeseeds", typeof(Material));
+				seasonalSeeds = "Grapes";
+				seasonalPrice = "500";
 			} else if(todayMonth == "Jul") {
-				// October Pumpkins
-				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
-				seasonalSeeds = "Pumpkin";
-				seasonalPrice = "350";
+				// July Watermelon
+				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_watermelonseeds", typeof(Material));
+				seasonalSeeds = "Watermelon";
+				seasonalPrice = "600";
 			} else {
-				// STUB : Pumpkin
-				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
-				seasonalSeeds = "Pumpkin";
-				seasonalPrice = "350";
+				// August Strawberries
+				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_strawberryseeds", typeof(Material));
+				seasonalSeeds = "Strawberry";
+				seasonalPrice = "300";
 			}
 		} else {
 			// Fall Seasonals
@@ -310,20 +312,20 @@ public class People_Lily : MonoBehaviour, IGvrGazeResponder {
 			
 			// Check for monthlies
 			if(todayMonth == "Sep") {
-				// STUB : Pumpkin
-				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
-				seasonalSeeds = "Pumpkin";
-				seasonalPrice = "350";
+				// September Sweet Potato
+				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_sweetpotatoseeds", typeof(Material));
+				seasonalSeeds = "Sweet Potato";
+				seasonalPrice = "120";
 			} else if(todayMonth == "Oct") {
 				// October Pumpkins
 				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
 				seasonalSeeds = "Pumpkin";
 				seasonalPrice = "350";
 			} else {
-				// STUB : Pumpkin
-				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_pumpkinseeds", typeof(Material));
-				seasonalSeeds = "Pumpkin";
-				seasonalPrice = "350";
+				// November Cranberry
+				rightMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_cranberryseeds", typeof(Material));
+				seasonalSeeds = "Cranberry";
+				seasonalPrice = "200";
 			}
 		}
 	}
