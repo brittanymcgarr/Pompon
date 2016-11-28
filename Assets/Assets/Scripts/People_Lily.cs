@@ -174,6 +174,8 @@ public class People_Lily : MonoBehaviour, IGvrGazeResponder {
 						GameControl.control.seeds[4] += 1;
 						
 						tutorialCount += 1;
+						GameControl.control.tutorial = false;
+						GameControl.control.Save();
 					}
 				} else {
 					text.text = tutorialText[tutorialCount];

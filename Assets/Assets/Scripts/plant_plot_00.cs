@@ -73,12 +73,21 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		plotRow = parentName[11] - '0';
 		plotColumn = parentName[12] - '0';
 		
+		if(plotRow != 0 && !(plotRow == 1 && GameControl.control.plotUpgrade1) 
+						&& !(plotRow == 2 && GameControl.control.plotUpgrade2) 
+						&& !(plotRow == 3 && GameControl.control.plotUpgrade3)) {
+			
+			GameObject parentPlot = GameObject.Find(parentName);
+			parentPlot.SetActive(false);
+		}
+		
 		// Get the values from the GameControl in format:
 		// "plant_plot_##,<growth stage character: 'D'irt, 'S'eed, '1' (sprout), '2' (stalk), '3' (harvest)>,
 		// <plant type string: "turnip", "carrot", etc.>,<DateTime string of planting in "yyyy-MM-dd HH:mm:ss.fffffff">"
-		if(GameControl.control.plots.Length != 0) {
-			string saveData = GameControl.control.plots[plotColumn];
-			string[] dataTokens = saveData.Split(',');
+		string saveData = GameControl.control.plots[plotRow * 8 + plotColumn];
+		string[] dataTokens = saveData.Split(',');
+		
+		if(saveData != "" && dataTokens.Length >= 4) {
 			saveData = dataTokens[1];
 			growthStage = saveData[0];
 			plantType = dataTokens[2];
@@ -330,7 +339,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		string dateString = plantTime.ToString(datetimeFormat);
 		saveValues = saveValues + dateString;
 		
-		GameControl.control.plots[plotColumn] = saveValues;
+		GameControl.control.plots[plotRow * 8 + plotColumn] = saveValues;
 		
 		// Save to the main state, too
 		GameControl.control.Save();

@@ -14,7 +14,7 @@ using System.Collections.Generic;
 
 public class BarnDoorToPompon : MonoBehaviour, IGvrGazeResponder {
 	// Public variables
-	public Vector3[] SpawnPoints = new Vector3[2];
+	public Vector3[] SpawnPoints = new Vector3[3];
 	
 	// Private variables
 	private float timeToHold = 3.0f;
@@ -47,6 +47,7 @@ public class BarnDoorToPompon : MonoBehaviour, IGvrGazeResponder {
 		
 		SpawnPoints[0] = new Vector3(-35.0f, 1.24f, 110.0f);
 		SpawnPoints[1] = new Vector3(-35.0f, 1.24f, 110.0f);
+		SpawnPoints[2] = new Vector3(-35.0f, 1.24f, 110.0f);
 		
 		controller = GameObject.Find("GvrViewerMain");
 		controller.transform.position = SpawnPoints[PlayerPrefs.GetInt("sceneId")];
@@ -72,6 +73,6 @@ public class BarnDoorToPompon : MonoBehaviour, IGvrGazeResponder {
 	}
 	
 	public void LoadScene() {
-		Application.LoadLevel(0);
+		Application.LoadLevel(1);
 	}
 }
