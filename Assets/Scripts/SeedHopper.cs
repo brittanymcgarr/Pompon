@@ -35,9 +35,6 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 	public Text exitText;
 	public string nextMenu = "";
 	public string currentMenu = "";
-	public GameObject leftButton;
-	public GameObject rightButton;
-	public GameObject exitButton;
 	public int produceChoice = 0;
 	
 	public string[] produceType;
@@ -88,13 +85,10 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 		produceType[15] = "Cranberry";
 		
 		// Load the buttons and scripts
-		leftButton = GameObject.Find("HopperLeftCollider").gameObject;
 		leftText = GameObject.Find("HopperLeftOption").GetComponent<Text>();
 		
-		rightButton = GameObject.Find("HopperRightCollider").gameObject;
 		rightText = GameObject.Find("HopperRightOption").GetComponent<Text>();
 		
-		exitButton = GameObject.Find("HopperExitCollider").gameObject;
 		exitText = GameObject.Find("HopperExitOption").GetComponent<Text>();
 		
 		// Load the MenuCanvas
@@ -103,9 +97,6 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 		menuCanvas.transform.SetParent(this.transform, false);
 		menuCanvas.transform.localPosition = new Vector3(-0.47f, 1.0f, 0.012f);
 		menuCanvas.SetActive(false);
-		
-		// Get the current repair stage
-		stage = GameControl.control.freezerStage;
 		
 		// Check if the seed hopper is ready and set the skin
 		// Get the values from the GameControl in format:
@@ -124,7 +115,7 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 				stage = 'b';
 				plantType = -1;
 				depositTime = System.DateTime.Now;
-				DateTime timestamp = System.DateTime.Now;
+				DateTime timestamp = depositTime;
 				string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
 				GameControl.control.seedHopper = "b,-1," + datenow;
 				GameControl.control.Save();
@@ -133,6 +124,10 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 			stage = 'b';
 			plantType = -1;
 			depositTime = System.DateTime.Now;
+			DateTime timestamp = depositTime;
+			string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+			GameControl.control.seedHopper = "b,-1," + datenow;
+			GameControl.control.Save();
 		}
 		
 		// Set the appliance's material
@@ -142,10 +137,15 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 		}
 		
 		// If the seed hopper is ready, set the screen
-		if(depositTime.AddHours(6) < System.DateTime.Now) {
+		if(stage != 'b' && plantType > -1 && depositTime.AddHours(6) < System.DateTime.Now) {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_seedhopper_ready", typeof(Material));
 			GetComponent<Renderer>().sharedMaterial = material;
 			seedsReady = true;
+		}
+		
+		if(stage == 'b') {
+			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_seedhopper_broken", typeof(Material));
+			GetComponent<Renderer>().sharedMaterial = material;
 		}
 	}
 	
@@ -178,7 +178,7 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 		}
 		
 		// Check the seed hopper's remaining time
-		if(stage != 'b' && plantType != -1) {
+		if(stage != 'b' && plantType > -1) {
 			if(depositTime.AddHours(6) < System.DateTime.Now) {
 				seedsReady = true;
 				material = (Material)Resources.Load("Models/Materials/Materials/cardboard_seedhopper_ready", typeof(Material));
@@ -209,6 +209,9 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 					depositTime = System.DateTime.Now;
 					currentMenu = "success";
 					nextMenu = "";
+					material = (Material)Resources.Load("Models/Materials/Materials/cardboard_seedhopper", typeof(Material));
+					GetComponent<Renderer>().sharedMaterial = material;
+					seedsReady = false;
 				} else {
 					currentMenu = "failure";
 					nextMenu = "";
@@ -285,6 +288,21 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 				nextMenu = "";
 				produceChoice = 0;
 			}
+		} else if(currentMenu == "failure") {
+			if(stage == 'b') {
+				menuText.text = "\nCannot complete action. Repair the machine, first.";
+			} else {
+				menuText.text = "\nCannot complete action. Load machine and wait 6 hours.";
+			}
+			
+			leftText.text = "";
+			rightText.text = "";
+			exitText.text = "Thanks";
+			
+			if(nextMenu == "exit") {
+				currentMenu = "";
+				nextMenu = "";
+			}
 		} else if(currentMenu == "repair" && stage == 'b') {
 			menuText.text = "\nIt will cost 50,000 gold to repair to convert a crop to two seed packs.\nCurrent Gold: " + GameControl.control.gold.ToString();
 			leftText.text = "Repair";
@@ -293,7 +311,7 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 			
 			if(nextMenu == "left") {
 				if(GameControl.control.gold >= 50000) {
-					GameControl.control.freezerStage = 'r';
+					GameControl.control.hopperStage = 'r';
 					GameControl.control.gold -= 50000;
 					stage = 'r';
 					material = (Material)Resources.Load("Models/Materials/Materials/cardboard_seedhopper", typeof(Material));
@@ -320,7 +338,7 @@ public class SeedHopper : MonoBehaviour, IGvrGazeResponder {
 			
 			if(nextMenu == "left") {
 				if(GameControl.control.gold >= 100000) {
-					GameControl.control.freezerStage = 'r';
+					GameControl.control.hopperStage = 'r';
 					GameControl.control.gold -= 100000;
 					stage = 'u';
 					currentMenu = "successrepair";

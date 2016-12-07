@@ -58,6 +58,15 @@ public class DebugTree : MonoBehaviour, IGvrGazeResponder{
 			gazeIn = false;
 			
 			GameControl.control.EraseSave();
+			
+			// Add some testing data
+			GameControl.control.tutorial = false;
+			GameControl.control.gold = 100000;
+			
+			for(int index = 0; index < 16; index++) {
+				GameControl.control.seeds[index] += 3;
+				GameControl.control.crops[index] = 1;
+			}
 		}
 	}
 }

@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/Barn.unity
+- path: Assets/Scenes/PomponWorldMap.unity
   isLoaded: 1
   isActive: 1

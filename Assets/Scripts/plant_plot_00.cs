@@ -18,9 +18,7 @@ using System.Collections.Generic;
 public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 	// Public variables
 	public Material material;
-	public Material seedMaterial;
-	public GameObject tool_wateringcan;
-	public GameObject tool_seeds;
+	public Material toolMaterial;
 	public GameObject current_tool;
 	public int plotRow = 0;
 	public int plotColumn = 0;
@@ -66,6 +64,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 	void Start () {
 		// Initialize the gaze action variables
 		heldTime = timeToHold;
+		animateTime = animateHold;
 		gazeIn = false;
 		
 		// Get this plot's numbering
@@ -73,12 +72,21 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		plotRow = parentName[11] - '0';
 		plotColumn = parentName[12] - '0';
 		
+		if(plotRow != 0 && !(plotRow == 1 && GameControl.control.plotUpgrade1) 
+						&& !(plotRow == 2 && GameControl.control.plotUpgrade2) 
+						&& !(plotRow == 3 && GameControl.control.plotUpgrade3)) {
+			
+			GameObject parentPlot = GameObject.Find(parentName);
+			parentPlot.SetActive(false);
+		}
+		
 		// Get the values from the GameControl in format:
 		// "plant_plot_##,<growth stage character: 'D'irt, 'S'eed, '1' (sprout), '2' (stalk), '3' (harvest)>,
 		// <plant type string: "turnip", "carrot", etc.>,<DateTime string of planting in "yyyy-MM-dd HH:mm:ss.fffffff">"
-		if(GameControl.control.plots.Length != 0) {
-			string saveData = GameControl.control.plots[plotColumn];
-			string[] dataTokens = saveData.Split(',');
+		string saveData = GameControl.control.plots[plotRow * 8 + plotColumn];
+		string[] dataTokens = saveData.Split(',');
+		
+		if(saveData != "" && dataTokens.Length >= 4) {
 			saveData = dataTokens[1];
 			growthStage = saveData[0];
 			plantType = dataTokens[2];
@@ -95,28 +103,37 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		}
 		
 		// Create the next action tool set
-		tool_wateringcan = Instantiate(tool_wateringcan) as GameObject;
-		tool_seeds = Instantiate(Resources.Load("Models/tool_seeds")) as GameObject;
+		current_tool = GameObject.Find("tool_wateringcan").gameObject;
 		
 		// Handle the current tool set
-		int seeds = GameControl.control.seeds[0] + GameControl.control.seeds[1] + GameControl.control.seeds[2];
+		int seeds = 0;
+		
+		for(int index = 0; index < 16 && seeds < 1; index++) {
+			seeds += GameControl.control.seeds[index];
+		}
+		
 		if(growthStage == 'D' && seeds > 0) {
-			current_tool = tool_seeds;
+			toolMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_turnip_seeds", typeof(Material));
+		
 			seedsLoaded = true;
 		} else {
-			current_tool = tool_wateringcan;
+			toolMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_wateringcan", typeof(Material));
+
 			seedsLoaded = false;
 		}
+		current_tool.GetComponent<Renderer>().sharedMaterial = toolMaterial;
+		current_tool.GetComponent<MeshRenderer>().enabled = false;
 		
 		// Create the material
 		if(growthStage == 'S') {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_sprout", typeof(Material));
-		} else if (growthStage == '1') {
+		} else if (growthStage == '1' && plantType != "") {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType + "_sprout", typeof(Material));
-		} else if (growthStage == '2') {
+		} else if (growthStage == '2' && plantType != "") {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType + "_sprout", typeof(Material));
-		} else if (growthStage == '3') {
+		} else if (growthStage == '3' && plantType != "") {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType + "_ready", typeof(Material));
+			harvest = true;
 		} else {
 			material = (Material)Resources.Load("Models/Materials/Materials/cardboard_dirt", typeof(Material));
 		}
@@ -186,16 +203,19 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 					}
 				}
 				
-				current_tool = tool_seeds;
-				seedMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + seedType + "seeds", typeof(Material));
-				current_tool.GetComponent<Renderer>().sharedMaterial = seedMaterial;
+				toolMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + seedType + "seeds", typeof(Material));
+				current_tool.GetComponent<Renderer>().sharedMaterial = toolMaterial;
 				seedsLoaded = true;
+			} else {
+				toolMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_wateringcan", typeof(Material));
+				current_tool.GetComponent<Renderer>().sharedMaterial = toolMaterial;
 			}
 			
 			if(seedType == "") {
 				seedsLoaded = false;
 				seedsUsed = false;
-				current_tool = tool_wateringcan;
+				toolMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_wateringcan", typeof(Material));
+				current_tool.GetComponent<Renderer>().sharedMaterial = toolMaterial;
 			}
 			
 			if(!toolIn) {
@@ -206,14 +226,13 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 				// Check for harvest action
 				if(harvest) {
 					// Set up the animation
-					current_tool = Instantiate(Resources.Load("Models/harvest_turnip")) as GameObject;
-					seedMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType, typeof(Material));
-					current_tool.GetComponent<Renderer>().sharedMaterial = seedMaterial;
-					current_tool.SetActive(true);
-					current_tool.transform.SetParent(this.transform, false);
-					current_tool.transform.localPosition = new Vector3(0.0f, 1.0f, 0.0f);
-					Destroy(current_tool, 2.0f);
-					Destroy(tool_wateringcan, 1.0f);
+					Material cropMaterial = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType, typeof(Material));
+					GameObject harvest_crop = Instantiate(Resources.Load("Models/harvest_turnip")) as GameObject;
+					harvest_crop.GetComponent<Renderer>().sharedMaterial = cropMaterial;
+					harvest_crop.SetActive(true);
+					harvest_crop.transform.SetParent(this.transform, false);
+					harvest_crop.transform.localPosition = new Vector3(0.0f, 1.2f, 0.0f);
+					Destroy(harvest_crop, 2.0f);
 					harvest = false;
 					
 					// Update the crops in the player's inventory
@@ -229,8 +248,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 					ResetPlot();
 				} else {
 					// Set the tool as active, move it relative to the parent, and play its animation
-					
-					current_tool.SetActive(true);
+					current_tool.GetComponent<MeshRenderer>().enabled = true;
 					current_tool.transform.SetParent(this.transform, false);
 					current_tool.transform.localPosition = new Vector3(0.0f, 1.0f, 1.0f);
 					current_tool.GetComponent<Animation>().Play("tool_wateringcan");
@@ -255,15 +273,14 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 			if(animateTime <= 0.0f) {
 				toolIn = false;
 				
-				current_tool.SetActive(false);
+				current_tool.GetComponent<MeshRenderer>().enabled = false;
 				
 				// Update the current tool if the state changes
 				if(seedsUsed) {
 					// Using seeds changes the state to 'S'eed
 					seedsUsed = false;
 					growthStage = 'S';
-					Destroy(current_tool, 1.0f);
-					current_tool = tool_wateringcan;
+					current_tool.GetComponent<MeshRenderer>().enabled = false;
 					plantType = seedType;
 					SetStageTimes();
 					plantTime = System.DateTime.Now;
@@ -281,13 +298,13 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		
 		// Check for growth stage
 		if(growthStage != 'D') {
-			if(growthStage == 'S') {
+			if(growthStage == 'S' && plantType != "") {
 				// Check if seconds to stage 1
 				if(plantTime.AddSeconds(stage1_seconds) < System.DateTime.Now) {
 					growthStage = '1';
 					Save();
 				}
-			} else if (growthStage == '1') {
+			} else if (growthStage == '1' && plantType != "") {
 				// Check if seconds to stage 2
 				if(plantTime.AddSeconds(stage2_seconds) < System.DateTime.Now) {
 					growthStage = '2';
@@ -295,7 +312,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 					GetComponent<Renderer>().sharedMaterial = material;
 					Save();
 				}
-			} else if (growthStage == '2') {
+			} else if (growthStage == '2' && plantType != "") {
 				// Check if seconds to stage 3
 				if(plantTime.AddSeconds(stage3_seconds) < System.DateTime.Now) {
 					growthStage = '3';
@@ -303,7 +320,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 					GetComponent<Renderer>().sharedMaterial = material;
 					Save();
 				}
-			} else if (growthStage == '3') {
+			} else if (growthStage == '3' && plantType != "") {
 				// Harvest item becomes an option
 				material = (Material)Resources.Load("Models/Materials/Materials/cardboard_" + plantType + "_ready", typeof(Material));
 				GetComponent<Renderer>().sharedMaterial = material;
@@ -330,7 +347,7 @@ public class plant_plot_00 : MonoBehaviour, IGvrGazeResponder {
 		string dateString = plantTime.ToString(datetimeFormat);
 		saveValues = saveValues + dateString;
 		
-		GameControl.control.plots[plotColumn] = saveValues;
+		GameControl.control.plots[plotRow * 8 + plotColumn] = saveValues;
 		
 		// Save to the main state, too
 		GameControl.control.Save();

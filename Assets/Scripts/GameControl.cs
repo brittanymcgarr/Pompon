@@ -22,6 +22,11 @@ public class GameControl : MonoBehaviour {
 
 	// Variables
 	public static int CROPS = 16;
+	public static int PLOTS = 32;
+	public static int CHICKENS = 8;
+	public static int COWS = 5;
+	public static int BUNNIES = 6;
+	public static int ITEMS = 11;
 	public int seedPos = 0;
 	public int seedPrice = 100;
 	public int seasonalPos = 0;
@@ -29,15 +34,22 @@ public class GameControl : MonoBehaviour {
 	
 	// Persistent data to store
 	public int gold;
-	public string[] plots = new string[8];
+	public string[] plots = new string[PLOTS];
+	public bool plotUpgrade1 = false;
+	public bool plotUpgrade2 = false;
+	public bool plotUpgrade3 = false;
+	public string[] chickens = new string[CHICKENS];
+	public string[] cows = new string[COWS];
+	public string[] bunnies = new string[BUNNIES];
 	public int[] seeds = new int[CROPS];
 	public int[] crops = new int[CROPS];
-	public int[] items = new int[5];
+	public int[] items = new int[ITEMS];
 	public int[] storedSeeds = new int[CROPS];
 	public int[] storedCrops = new int[CROPS];
 	public char freezerStage = 'b';
 	public char hopperStage = 'b';
 	public string seedHopper = "";
+	public string butterChurn = "";
 	public DateTime crabGift;
 	public int crabNumber = 0;
 	public DateTime acornsDrop;
@@ -48,6 +60,9 @@ public class GameControl : MonoBehaviour {
 	public int flowersNumber = 0;
 	public bool tutorial = true;
 	public string todayMonth;
+	public DateTime bunnyBreed;
+	public bool carrotPlanted = false;
+	public DateTime bunnyCaught;
 	
 	// Awake comes before Start
 	void Awake () {
@@ -80,6 +95,10 @@ public class GameControl : MonoBehaviour {
 	
 	// Saving from other scripts
 	public void Save() {
+		// Get time information
+		string datetimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+		string dateString = DateTime.Now.ToString(datetimeFormat);
+			
 		// Create the binary file and path name
 		BinaryFormatter bf = new BinaryFormatter();
 		FileStream file = File.Create(Application.persistentDataPath + "/playerInfo.dat");
@@ -87,24 +106,170 @@ public class GameControl : MonoBehaviour {
 		// Create the player data object to serialize and save
 		PlayerData data = new PlayerData();
 		
+		// Player wealth
 		data.gold = gold;
-		data.plots = plots;
-		data.seeds = seeds;
-		data.crops = crops;
-		data.items = items;
+		
+		// Check for valid plant plot data
+		if(plots.Length == PLOTS) {
+			data.plots = plots;
+		} else {			
+			data.plots = new string[PLOTS];
+		
+			for(int index = 0; index < plots.Length; index++) {
+				data.plots[index] = plots[index];
+			}
+			
+			for(int count = plots.Length; count < PLOTS; count++) {
+				data.plots[count] = "plant_plot_" + (char) (count / 8 + 48) + (char) (count % 8 + 48) + ",D,," + dateString;
+			}
+		}
+		
+		// Check for plot upgrades
+		data.plotUpgrade1 = plotUpgrade1;
+		data.plotUpgrade2 = plotUpgrade2;
+		data.plotUpgrade3 = plotUpgrade3;
+		
+		// Check for chickens
+		if(chickens.Length == CHICKENS && chickens[0] != "") {
+			data.chickens = chickens;
+		} else {
+			data.chickens = new string[CHICKENS];
+			
+			for(int index = 0; index < CHICKENS; index++) {
+				data.chickens[index] = "Nest0" + (char)(index + 48) + ",E,N," + dateString + ",0,N,0," + dateString;
+			}
+		}
+		
+		// Check for cows
+		if(cows.Length == COWS && cows[0] != "") {
+			data.cows = cows;
+		} else {
+			data.cows = new string[COWS];
+			
+			for(int index = 0; index < COWS; index++) {
+				cows[index] = "Cow" + (char)(index + 48) + ",E," + dateString + ",0,N,0," + dateString + "," + dateString;
+			}
+		}
+		
+		// Check for bunnies
+		if(bunnies.Length == BUNNIES && bunnies[0] != "") {
+			data.bunnies = bunnies;
+		} else {
+			data.bunnies = new string[BUNNIES];
+			
+			for(int index = 0; index < BUNNIES; index++) {
+				bunnies[index] = "Bunny0" + (char)(index + 48) + ",0,0,N," + dateString;
+			}
+		}
+			
+		// Check for valid seeds length
+		if(seeds.Length == CROPS) {
+			data.seeds = seeds;
+		} else {
+			seeds = new int[CROPS];
+			
+			// Not the correct length of data, so reinitialize
+			for(int index = 0; index < CROPS; index++) {
+				seeds[index] = 0;
+			}
+			
+			data.seeds = seeds;
+		}
+		
+		// Check for valid crops length
+		if(crops.Length == CROPS) {
+			data.crops = crops;
+		} else {
+			crops = new int[CROPS];
+			
+			for(int index = 0; index < CROPS; index++) {
+				crops[index] = 0;
+			}
+			
+			data.crops = crops;
+		}
+		
+		// Check for valid items
+		if(items.Length == ITEMS) {
+			data.items = items;
+		} else {
+			int[] hold = new int[items.Length];
+			hold = items;
+			items = new int[ITEMS];
+			
+			for(int index = 0; index < ITEMS; index++) {
+				if(index < hold.Length) {
+					items[index] = hold[index];
+				} else {
+					items[index] = 0;
+				}
+			}
+			
+			data.items = items;
+		}
+		
+		// Check for valid stored seeds data
+		if(storedSeeds.Length != CROPS) {
+			storedSeeds = new int[CROPS];
+			
+			for(int index = 0; index < CROPS; index++) {
+				storedSeeds[index] = 0;
+			}
+		}
 		data.storedSeeds = storedSeeds;
+		
+		// Check for valid stored crops data
+		if(storedCrops.Length != CROPS) {
+			storedCrops = new int[CROPS];
+			
+			for(int index = 0; index < CROPS; index++) {
+				storedCrops[index] = 0;
+			}
+		}
 		data.storedCrops = storedCrops;
+		
+		// Freezer and hopper repair states
 		data.freezerStage = freezerStage;
 		data.hopperStage = hopperStage;
+		
+		// Check for valid seed hopper data
+		if(seedHopper == "") {
+			seedHopper = "b,-1," + dateString;
+		}
 		data.seedHopper = seedHopper;
+		
+		// Check for valid butter churn data
+		if(butterChurn == "") {
+			butterChurn = "b,N," + dateString;
+		}
+		data.butterChurn = butterChurn;
+		
+		// Crab data
 		data.crabGift = crabGift;
 		data.crabNumber = crabNumber;
+		
+		// Acorn drop data
 		data.acornsDrop = acornsDrop;
 		data.acornsNumber = acornsNumber;
+		
+		// Mushroom data
 		data.mushroomDrop = mushroomDrop;
 		data.mushroomsNumber = mushroomsNumber;
+		
+		// Flower data
 		data.flowerDrop = flowerDrop;
 		data.flowersNumber = flowersNumber;
+		
+		// Bunny breeding date
+		data.bunnyBreed = bunnyBreed;
+		
+		// Carrots?
+		data.carrotPlanted = carrotPlanted;
+		
+		// Bunny caught today?
+		data.bunnyCaught = bunnyCaught;
+		
+		// Tutorial states
 		data.tutorial = tutorial;
 		
 		// Serialize it
@@ -121,7 +286,8 @@ public class GameControl : MonoBehaviour {
 			FileStream file = File.Open(Application.persistentDataPath + "/playerInfo.dat", FileMode.Open);
 			
 			// Pull out the data from the file and deserialize it as a PlayerData
-			PlayerData data = (PlayerData) bf.Deserialize(file);
+			PlayerData data;
+			data = (PlayerData) bf.Deserialize(file);
 			
 			// Close the file
 			file.Close();
@@ -129,14 +295,54 @@ public class GameControl : MonoBehaviour {
 			// Set that data
 			gold = data.gold;
 			
+			string datetimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+			string dateString = DateTime.Now.ToString(datetimeFormat);
+			
 			// Set the plots
-			if(data.plots.Length < plots.Length) {
+			if(data.plots.Length < PLOTS) {
 				for(int index = 0; index < data.plots.Length; index++) {
 					plots[index] = data.plots[index];
+				}
+				
+				for(int count = data.plots.Length; count < PLOTS; count++) {
+					plots[count] = "plant_plot_" + (char) (count / 8 + 48) + (char) (count % 8 + 48) + ",D,," + dateString;
 				}
 			} else {
 				plots = data.plots;
 			}
+			
+			// Plot upgrades
+			plotUpgrade1 = data.plotUpgrade1;
+			plotUpgrade2 = data.plotUpgrade2;
+			plotUpgrade3 = data.plotUpgrade3;
+			
+			// Set up the chickens
+			if(data.chickens.Length < CHICKENS || data.chickens[0] == "") {
+				data.chickens = new string[CHICKENS];
+				
+				for(int index = 0; index < CHICKENS; index++) {
+					data.chickens[index] = "Nest0" + (char)(index + 48) + ",E,N," + dateString + ",0,N,0," + dateString;
+				}
+			}
+			chickens = data.chickens;
+			
+			if(data.cows.Length < COWS || data.cows[0] == "") {
+				data.cows = new string[COWS];
+				
+				for(int index = 0; index < COWS; index++) {
+					cows[index] = "Cow" + (char)(index + 48) + ",E," + dateString + ",0,N,0," + dateString + "," + dateString;
+				}
+			}
+			cows = data.cows;
+			
+			if(data.bunnies.Length < BUNNIES || data.bunnies[0] == "") {
+				data.bunnies = new string[BUNNIES];
+				
+				for(int index = 0; index < BUNNIES; index++) {
+					bunnies[index] = "Bunny0" + (char)(index + 48) + ",0,0,N," + dateString;
+				}
+			}
+			bunnies = data.bunnies;
 			
 			// Set the seeds
 			if(data.seeds.Length < CROPS) {
@@ -157,6 +363,19 @@ public class GameControl : MonoBehaviour {
 			}
 			
 			// Set the items
+			if(data.items.Length < ITEMS) {
+				int[] hold = new int[data.items.Length];
+				hold = data.items;
+				data.items = new int[ITEMS];
+				
+				for(int index = 0; index < ITEMS; index++) {
+					if(index < hold.Length) {
+						data.items[index] = hold[index];
+					} else {
+						data.items[index] = 0;
+					}
+				}
+			}
 			items = data.items;
 			
 			// Set the stored seeds
@@ -180,6 +399,7 @@ public class GameControl : MonoBehaviour {
 			freezerStage = data.freezerStage;
 			hopperStage = data.hopperStage;
 			seedHopper = data.seedHopper;
+			butterChurn = data.butterChurn;
 			crabGift = data.crabGift;
 			crabNumber = data.crabNumber;
 			acornsDrop = data.acornsDrop;
@@ -188,6 +408,9 @@ public class GameControl : MonoBehaviour {
 			mushroomsNumber = data.mushroomsNumber;
 			flowerDrop = data.flowerDrop;
 			flowersNumber = data.flowersNumber;
+			bunnyBreed = data.bunnyBreed;
+			carrotPlanted = data.carrotPlanted;
+			bunnyCaught = data.bunnyCaught;
 			tutorial = data.tutorial;
 		} else {
 			// Save the new game
@@ -199,15 +422,34 @@ public class GameControl : MonoBehaviour {
 	public void EraseSave() {
 		DateTime timestamp = System.DateTime.Now;
 		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
-		plots = new string[8];
+		string dateprior = timestamp.AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+		plots = new string[PLOTS];
 		seeds = new int[CROPS];
 		crops = new int[CROPS];
-		items = new int[5];
+		chickens = new string[CHICKENS];
+		cows = new string[COWS];
+		bunnies = new string[BUNNIES];
+		items = new int[ITEMS];
 		storedSeeds = new int[CROPS];
 		storedCrops = new int[CROPS];
 		
-		for(int index = 0; index < 8; index++) {
-			plots[index] = "plant_plot_0" + (char)(index + 48) + "," + 'D' + ",dirt," + datenow;
+		for(int index = 0; index < 4; index++) {
+			for(int count = 0; count < 8; count++) {
+				plots[index * 8 + count] = "plant_plot_" + (char) (index + 48) + (char)(count + 48) + "," + 'D' 
+											+ ",dirt," + datenow;
+			}
+		}
+		
+		for(int index = 0; index < CHICKENS; index++) {
+			chickens[index] = "Nest0" + (char)(index + 48) + ",E,N," + datenow + ",0,N,0," + datenow;
+		}
+		
+		for(int index = 0; index < COWS; index++) {
+			cows[index] = "Cow" + (char)(index + 48) + ",E," + datenow + ",0,N,0," + datenow + "," + dateprior;
+		}
+		
+		for(int index = 0; index < BUNNIES; index++) {
+			bunnies[index] = "Bunny0" + (char)(index + 48) + ",0,0,N," + datenow;
 		}
 		
 		for(int index = 0; index < CROPS; index++) {
@@ -217,7 +459,7 @@ public class GameControl : MonoBehaviour {
 			storedCrops[index] = 0;
 		}
 		
-		for(int index = 0; index < 5; index++) {
+		for(int index = 0; index < ITEMS; index++) {
 			items[index] = 0;
 		}
 		
@@ -231,6 +473,9 @@ public class GameControl : MonoBehaviour {
 		// Reset the seed hopper information
 		seedHopper = "b,-1," + datenow;
 		
+		// Reset the butter churn information
+		butterChurn = "b,N," + datenow;
+		
 		// Reset their gifting times
 		crabGift = System.DateTime.Now;
 		crabGift = crabGift.AddDays(-1);
@@ -240,6 +485,9 @@ public class GameControl : MonoBehaviour {
 		mushroomDrop = mushroomDrop.AddDays(-1);
 		flowerDrop = System.DateTime.Now;
 		flowerDrop = flowerDrop.AddDays(-1);
+		bunnyBreed = System.DateTime.Now;
+		carrotPlanted = false;
+		bunnyCaught = System.DateTime.Now.AddDays(-1);
 		
 		crabNumber = acornsNumber = mushroomsNumber = flowersNumber = 0;
 		
@@ -247,14 +495,9 @@ public class GameControl : MonoBehaviour {
 		File.Delete(Application.persistentDataPath + "/playerInfo.dat");
 		
 		// Reset the plant plots
-		GameObject plantplot;
-		plant_plot_00 plotScript;
-		
-		for(int plot = 0; plot < 8; plot++) {
-			plantplot = GameObject.Find("Terrain/Field/plant_plot_0" + (char)(plot + 48));
-			plotScript = plantplot.GetComponent<plant_plot_00>();
-			plotScript.ResetPlot();
-		}
+		plotUpgrade1 = false;
+		plotUpgrade2 = false;
+		plotUpgrade3 = false;
 		
 		// Save the game, now
 		Save();
@@ -563,27 +806,57 @@ public class GameControl : MonoBehaviour {
 		}
 		
 		// Sell acorns
-		if(items[0] > 0) {
-			if(items[0] > remaining) {
-				gold = gold + (items[0] - remaining) * 10;
-				items[0] = remaining;
-			}
+		if(items[0] > remaining) {
+			gold += (items[0] - remaining) * 10;
+			items[0] = remaining;
 		}
 		
 		// Sell mushrooms
-		if(items[1] > 0) {
-			if(items[1] > remaining) {
-				gold = gold + (items[1] - remaining) * 10;
-				items[1] = remaining;
-			}
+		if(items[1] > remaining) {
+			gold += (items[1] - remaining) * 50;
+			items[1] = remaining;
 		}
 		
 		// Sell scallops
-		if(items[2] > 0) {
-			if(items[2] > remaining) {
-				gold = gold + (items[2] - remaining) * 10;
-				items[2] = remaining;
-			}
+		if(items[2] > remaining) {
+			gold += (items[2] - remaining) * 140;
+			items[2] = remaining;
+		}
+		
+		// Sell eggs
+		if(items[5] > remaining) {
+			gold += (items[5] - remaining) * 350;
+			items[5] = remaining;
+		}
+		
+		// Sell gold eggs
+		if(items[6] > 0) {
+			gold += (items[6] - remaining) * 700;
+			items[6] = remaining;
+		}
+		
+		// Sell milk
+		if(items[7] > 0) {
+			gold += (items[7] - remaining) * 500;
+			items[7] = remaining;
+		}
+		
+		// Sell good milk
+		if(items[8] > 0) {
+			gold += (items[8] - remaining) * 1000;
+			items[8] = remaining;
+		}
+		
+		// Sell butter
+		if(items[9] > 0) {
+			gold += (items[9] - remaining) * 1000;
+			items[9] = remaining;
+		}
+		
+		// Sell Blue Ribbon Butter
+		if(items[10] > 0) {
+			gold += (items[10] - remaining) * 2000;
+			items[10] = remaining;
 		}
 
 		Save();
@@ -737,10 +1010,10 @@ public class GameControl : MonoBehaviour {
 		string datetimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
 		DateTime depositTime = System.DateTime.ParseExact(dataTokens[2], datetimeFormat, CultureInfo.InvariantCulture);
 		
-		if(plantType >= 0 && depositTime.AddHours(6) < System.DateTime.Now) {
+		if((dataTokens[0])[0] != 'b' && plantType >= 0 && depositTime.AddHours(6) < System.DateTime.Now) {
 			DateTime timestamp = System.DateTime.Now;
 			string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
-			seedHopper = dataTokens[0] + "," + (-1).ToString() + "," + datenow;
+			seedHopper = dataTokens[0] + ",-1," + datenow;
 			
 			if((dataTokens[0])[0] == 'u') {
 				seeds[plantType] += 3;
@@ -779,6 +1052,68 @@ public class GameControl : MonoBehaviour {
 			Save();
 		}
 	}
+	
+	// Upgrade the butter churn
+	public void UpgradeChurn() {
+		DateTime timestamp = System.DateTime.Now;
+		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+		
+		if(butterChurn != "" && butterChurn != null) {
+			string[] dataTokens = butterChurn.Split(',');
+			
+			if(dataTokens[0][0] == 'b') {
+				butterChurn = "r,N," + datenow;
+			}
+		} else {
+			butterChurn = "b,N," + datenow;
+		}
+		
+		Save();
+	}
+	
+	// Withdraw butter from the churn
+	public void WithdrawChurn() {
+		string datetimeFormat = "yyyy-MM-dd HH:mm:ss.fffffff";
+		
+		if(butterChurn != "" && butterChurn != null) {
+			string[] dataTokens = butterChurn.Split(',');
+			DateTime deposit = System.DateTime.ParseExact(dataTokens[2], datetimeFormat, CultureInfo.InvariantCulture);
+			char milk = dataTokens[1][0];
+			
+			if(deposit.AddHours(6) <= System.DateTime.Now && (milk == 'G' || milk == 'M')) {
+				if(milk == 'G') {
+					items[10] += 1;
+				} else {
+					items[9] += 1;
+				}
+				
+				butterChurn = "r,N," + System.DateTime.Now.ToString(datetimeFormat);
+				
+				Save();
+			}
+		}
+	}
+	
+	// Deposit butter to the churn
+	public void DepositChurn(char milkType) {
+		if(butterChurn[0] != 'b' && butterChurn[2] == 'N') {
+			if(milkType == 'G' && items[8] > 0) {
+				items[8] -= 1;
+				
+				butterChurn = "r,G," + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+				
+				Save();
+			} else if(milkType == 'M' && items[7] > 0) {
+				items[7] -= 1;
+				
+				butterChurn = "r,M," + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+				
+				Save();
+			} else {
+			
+			}
+		}
+	}
 }
 
 // Private class of player data
@@ -786,6 +1121,11 @@ public class GameControl : MonoBehaviour {
 class PlayerData {
 	// Size variables
 	public static int CROPS = 16;
+	public static int PLOTS = 32;
+	public static int CHICKENS = 8;
+	public static int BUNNIES = 6;
+	public static int COWS = 5;
+	public static int ITEMS = 11;
 
 	public int gold;
 	
@@ -793,6 +1133,32 @@ class PlayerData {
 	// "plant_plot_##,<growth stage character: 'D'irt, 'S'eed, '1' (sprout), '2' (stalk), '3' (harvest)>,
 	// <plant type string: "turnip", "carrot", etc.>,<DateTime string of planting in "yyyy-MM-dd HH:mm:ss.fffffff">"
 	public string[] plots;
+	
+	// Plot upgrade states
+	public bool plotUpgrade1 = false;
+	public bool plotUpgrade2 = false;
+	public bool plotUpgrade3 = false;
+	
+	// Chickens
+	// Nest values in string data format
+	// "Nest##,<Growth Stage character: 'E'mpty, E'G'g, 'C'hick, 'A'dult>,<Gender character: 'N'one, 'F'emale, 'M'ale>,
+	// <DateTime string of purchase/laid in "yyyy-MM-dd HH:mm:ss.fffffff">,<Hearts # character: '0', '1', '2', '3'>,
+	// <Egg status: 'N'one, 'C'ollected, 'W'aiting, 'G'old>,<Pats # character: '0' ... '9'>,
+	// <DateTime string of collection in "yyyy-MM-dd HH:mm:ss.fffffff">"
+	public string[] chickens;
+	
+	// Cows
+	// Cow values in string data format
+	// "Cow#,<Cow Present character: 'E'mpty, 'A'vailable>,<DateTime string of purchase date in "yyyy-MM-dd HH:mm:ss.fffffff">,
+	// <Hearts # character: '0', '1', '2', '3'>,<Milk status: 'N'one, 'C'ollected, 'W'aiting, 'G'ood>,<Pats # character: '0' ... '9'>,
+	// <DateTime string of collection time in "yyyy-MM-dd HH:mm:ss.fffffff">,<DateTime string of fodder refill in "yyyy-MM-dd HH:mm:ss.fffffff">"
+	public string[] cows;
+	
+	// Bunnies
+	// Bunny save values in string data format
+	// "Bunny##,<Bunny Allele 1 int: 0 = No rabbit, 1 = white, 2 = gray, 3 = black, 4 = brown>,<Bunny Allele 2 int: same as 1>,
+	// <Gender character: 'N'one, 'M'ale, 'F'emale>,<DateTime age in "yyyy-MM-dd HH:mm:ss.fffffff" format>"
+	public string[] bunnies;
 	
 	// Store inventory values
 	
@@ -809,7 +1175,8 @@ class PlayerData {
 	public int[] crops;
 	
 	// Items
-	// Order of item values: 0 acorns, 1 mushrooms, 2 scallops, 3 tulips, 4 pompons, ...
+	// Order of item values: 0 acorns, 1 mushrooms, 2 scallops, 3 tulips, 4 pompons, 5 eggs, 6 gold eggs, 7 milk, 8 good milk,
+	// 9 butter, 10 blue ribbon butter ...
 	public int[] items;
 	
 	// Stored Seeds
@@ -825,6 +1192,9 @@ class PlayerData {
 	// Seed Hopper data
 	public string seedHopper = "";
 	
+	// Butter Churn data
+	public string butterChurn = "";
+	
 	// Gift spawns
 	public DateTime crabGift;
 	public int crabNumber = 0;
@@ -834,6 +1204,9 @@ class PlayerData {
 	public int mushroomsNumber = 0;
 	public DateTime flowerDrop;
 	public int flowersNumber = 0;
+	public DateTime bunnyBreed;
+	public bool carrotPlanted;
+	public DateTime bunnyCaught;
 	
 	// UI variables
 	public bool tutorial = true;
@@ -841,18 +1214,41 @@ class PlayerData {
 	// Class Methods
 	// Public constructor
 	public PlayerData() {
-		plots = new string[8];
+		plots = new string[PLOTS];
 		seeds = new int[CROPS];
 		crops = new int[CROPS];
-		items = new int[5];
+		chickens = new string[CHICKENS];
+		cows = new string[COWS];
+		bunnies = new string[BUNNIES];
+		items = new int[ITEMS];
 		storedSeeds = new int[CROPS];
 		storedCrops = new int[CROPS];
 		
 		DateTime timestamp = System.DateTime.Now;
 		string datenow = timestamp.ToString("yyyy-MM-dd HH:mm:ss.fffffff");
 		
-		for(int index = 0; index < 8; index++) {
-			plots[index] = "plant_plot_0" + (char)(index + 48) + "," + 'D' + ",dirt," + datenow;
+		for(int index = 0; index < 4; index++) {
+			for(int count = 0; count < 8; count++) {
+				plots[index * 8 + count] = "plant_plot_" + (char)(index + 48) + (char)(count + 48) + "," + 'D' + ",dirt," + datenow;
+			}
+		}
+		
+		plotUpgrade1 = false;
+		plotUpgrade2 = false;
+		plotUpgrade3 = false;
+		
+		for(int index = 0; index < CHICKENS; index++) {
+			chickens[index] = "Nest0" + (char)(index + 48) + ",E,N," + datenow + ",0,N,0," + datenow;
+		}
+		
+		string dateprior = timestamp.AddDays(-1).ToString("yyyy-MM-dd HH:mm:ss.fffffff");
+		
+		for(int index = 0; index < COWS; index++) {
+			cows[index] = "Cow" + (char)(index + 48) + ",E," + datenow + ",0,N,0," + datenow + "," + dateprior;
+		}
+		
+		for(int index = 0; index < BUNNIES; index++) {
+			bunnies[index] = "Bunny0" + (char)(index + 48) + ",0,0,N," + datenow;
 		}
 		
 		for(int index = 0; index < CROPS; index++) {
@@ -862,7 +1258,7 @@ class PlayerData {
 			storedCrops[index] = 0;
 		}
 		
-		for(int index = 0; index < 5; index++) {
+		for(int index = 0; index < ITEMS; index++) {
 			items[index] = 0;
 		}
 		
@@ -870,10 +1266,14 @@ class PlayerData {
 		hopperStage = 'b';
 		
 		seedHopper = "b," + (-1).ToString() + "," + datenow;
+		butterChurn = "b,N," + datenow;
 		
 		crabGift = System.DateTime.Now;
 		acornsDrop = System.DateTime.Now;
 		mushroomDrop = System.DateTime.Now;
 		flowerDrop = System.DateTime.Now;
+		bunnyBreed = System.DateTime.Now;
+		carrotPlanted = false;
+		bunnyCaught = System.DateTime.Now;
 	}
 }

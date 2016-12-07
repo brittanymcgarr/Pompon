@@ -45,7 +45,7 @@ public class StorageExitButton : MonoBehaviour, IGvrGazeResponder {
 		heldTime = timeToHold;
 		gazeIn = false;
 		
-		// Find Lily to communicate
+		// Find Freezer to communicate
 		crate = GameObject.Find("Freezer").gameObject;
 		crateScript = crate.GetComponent<Freezer>();
 	}
